@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKATE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SKATE OS</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,18 +12,29 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-color: #11141a;
+            --window-bg: #1a1d24;
+            --header-bg: #232730;
+            --accent-pink: #ff9dcc;
+            --accent-pink-dark: #f15b9b;
+            --text-main: #ffffff;
+            --text-sub: #a0a5b5;
+            --dock-height: 65px;
         }
 
         html,
         body {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background: #11141a;
-            color: #ffffff;
+            background: var(--bg-color);
+            color: var(--text-main);
         }
 
-        /* Desktop Canvas */
         .desktop-canvas {
             position: relative;
             width: 100vw;
@@ -32,15 +43,15 @@
             overflow: hidden;
         }
 
-        /* Vorschau-Fläche beim Randzug (Snap Preview) */
+        /* Snap Preview Zone */
         .snap-preview {
             position: absolute;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(37, 99, 235, 0.25);
-            border: 2px dashed rgba(59, 130, 246, 0.6);
+            background: rgba(255, 157, 204, 0.15);
+            border: 2px dashed rgba(255, 157, 204, 0.5);
             border-radius: 12px;
             pointer-events: none;
             opacity: 0;
@@ -52,57 +63,77 @@
             opacity: 1;
         }
 
-        /* Fenster Styles */
         .window {
             position: absolute;
-            background: #1a1d24;
+            background: var(--window-bg);
             border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-width: 250px;
-            min-height: 150px;
+            min-width: 280px;
+            min-height: 180px;
             transition: top 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
                 left 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
                 width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
-                height 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+                height 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+                opacity 0.2s ease,
+                transform 0.2s ease;
         }
 
         .window.dragging {
             transition: none !important;
-            /* Deaktiviert Animationen während des ziehens */
+        }
+
+        .window.minimized {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8) translateY(100px);
         }
 
         .window-header {
-            height: 38px;
-            background: #232730;
+            height: 42px;
+            background: var(--header-bg);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 12px;
+            padding: 0 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             cursor: move;
+            touch-action: none;
         }
 
         .window-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: #a0a5b5;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-sub);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .window-controls {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
         }
 
         .control-btn {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             cursor: pointer;
             border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease;
+        }
+
+        .control-btn:active {
+            transform: scale(0.85);
         }
 
         .btn-close {
@@ -122,53 +153,63 @@
         }
 
         .window-body h2 {
-            font-size: 1.4rem;
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
             color: #ffffff;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-weight: 700;
         }
 
         .window-body p {
-            line-height: 1.5;
+            line-height: 1.6;
             font-size: 0.95rem;
+            color: #b0b5c4;
+            margin-bottom: 12px;
         }
 
-        .window-body img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            max-width: 100%;
-            object-fit: contain;
+        .window-body a {
+            color: var(--accent-pink);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
         }
 
+        .window-body a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
+        /* Specific Window Styles */
         #win-1 .window-body {
             position: relative;
             padding: 0;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #win-1 .window-body img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .skate-wordmark {
             position: absolute;
             top: 50%;
             left: 50%;
-            color: #ff9dcc;
+            color: var(--accent-pink);
             font-family: "Cooper Black", "Arial Rounded MT Bold", "Arial Black", sans-serif;
-            font-size: clamp(3.2rem, 15vw, 6.5rem);
+            font-size: clamp(2.8rem, 12vw, 6rem);
             font-weight: 900;
-            font-style: normal;
-            -webkit-text-stroke: 5px #11141a;
-            paint-order: stroke fill;
-            letter-spacing: -0.1em;
+            letter-spacing: -0.05em;
             line-height: 1;
             white-space: nowrap;
-            text-shadow: 4px 4px 0 #f15b9b, 9px 10px 0 #11141a, 0 0 18px rgba(0, 0, 0, 0.8);
-            transform: translate(-50%, -50%) rotate(-3deg) scale(1.05);
-            filter: blur(5px);
-            animation: sprayPaint 1100ms ease-out 350ms forwards;
-            z-index: 1;
+            text-shadow: 3px 3px 0 var(--accent-pink-dark), 7px 8px 0 #11141a, 0 0 20px rgba(0, 0, 0, 0.9);
+            transform: translate(-50%, -50%) rotate(-4deg);
+            z-index: 2;
+            pointer-events: none;
         }
 
         .skate-letter {
@@ -177,120 +218,229 @@
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            -webkit-text-stroke: 3px #11141a;
+            -webkit-text-stroke: 2px #11141a;
             paint-order: stroke fill;
-            text-shadow: 1px 1px 0 #f477ae,
-                3px 3px 0 #e34e8c,
-                5px 5px 0 #bd326e,
-                7px 7px 0 #11141a,
-                10px 11px 0 rgba(0, 0, 0, 0.75);
             opacity: 0;
-            transform: translateY(-90px) rotate(var(--start-angle)) scale(1.6);
-            animation: letterSpray 900ms cubic-bezier(0.2, 1.4, 0.4, 1) var(--delay) forwards;
+            transform: translateY(-60px) rotate(var(--start-angle)) scale(1.4);
+            animation: letterSpray 800ms cubic-bezier(0.2, 1.4, 0.4, 1) var(--delay) forwards;
         }
 
-        .skate-letter:nth-child(1) {
-            --delay: 450ms;
-            --start-angle: -24deg;
-            --end-angle: -8deg;
-        }
-
-        .skate-letter:nth-child(2) {
-            --delay: 520ms;
-            --start-angle: 16deg;
-            --end-angle: 5deg;
-        }
-
-        .skate-letter:nth-child(3) {
-            --delay: 590ms;
-            --start-angle: -18deg;
-            --end-angle: -4deg;
-        }
-
-        .skate-letter:nth-child(4) {
-            --delay: 660ms;
-            --start-angle: 22deg;
-            --end-angle: 8deg;
-        }
-
-        .skate-letter:nth-child(5) {
-            --delay: 730ms;
-            --start-angle: -14deg;
-            --end-angle: -6deg;
-        }
+        .skate-letter:nth-child(1) { --delay: 200ms; --start-angle: -20deg; --end-angle: -6deg; }
+        .skate-letter:nth-child(2) { --delay: 280ms; --start-angle: 14deg; --end-angle: 4deg; }
+        .skate-letter:nth-child(3) { --delay: 360ms; --start-angle: -16deg; --end-angle: -3deg; }
+        .skate-letter:nth-child(4) { --delay: 440ms; --start-angle: 18deg; --end-angle: 6deg; }
+        .skate-letter:nth-child(5) { --delay: 520ms; --start-angle: -12deg; --end-angle: -4deg; }
 
         @keyframes letterSpray {
             0% {
                 opacity: 0;
-                transform: translateY(-90px) rotate(var(--start-angle)) scale(1.6);
+                transform: translateY(-60px) rotate(var(--start-angle)) scale(1.4);
             }
-
-            65% {
-                opacity: 1;
-                transform: translateY(12px) rotate(var(--end-angle)) scale(0.88);
-            }
-
             100% {
                 opacity: 1;
                 transform: translateY(0) rotate(var(--end-angle)) scale(1);
             }
         }
 
-        .skate-wordmark::before {
-            position: absolute;
-            content: "";
-            top: 50%;
-            left: 50%;
-            width: 170%;
-            height: 220%;
-            background-image: radial-gradient(circle, rgba(255, 223, 0, 0.95) 0 2px, transparent 3px),
-                radial-gradient(circle, rgba(229, 57, 53, 0.8) 0 1px, transparent 2px);
-            background-position: 8% 40%, 70% 60%;
-            background-size: 18px 15px, 11px 13px;
-            opacity: 0;
-            transform: translate(-50%, -50%) scale(0.35);
-            animation: sprayBurst 900ms ease-out 350ms forwards;
-            pointer-events: none;
-            z-index: -1;
+        /* Mobile Launcher / Mobile Grid (Visible on Small Screens) */
+        .mobile-home-screen {
+            display: none;
+            padding: 30px 20px;
+            height: calc(100vh - var(--dock-height));
+            overflow-y: auto;
         }
 
-        @keyframes sprayPaint {
-            0% {
-                opacity: 0;
-                filter: blur(5px);
+        .mobile-header {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .mobile-header h1 {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+
+        .mobile-header p {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .app-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .app-card:active {
+            background: rgba(255, 255, 255, 0.12);
+            transform: scale(0.96);
+        }
+
+        .app-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2a2f3a, #1a1d24);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .app-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .mobile-dock {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--dock-height);
+            background: rgba(23, 26, 33, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10000;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+        }
+
+        .dock-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-sub);
+            font-size: 0.75rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 60px;
+            height: 100%;
+            transition: color 0.2s;
+        }
+
+        .dock-item.active {
+            color: var(--accent-pink);
+        }
+
+        .dock-icon {
+            font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-home-screen {
+                display: block;
             }
 
-            45% {
-                opacity: 0.45;
-                filter: blur(3px);
+            .mobile-dock {
+                display: flex;
             }
 
-            70% {
-                opacity: 0.8;
-                filter: blur(1px);
+            /* Convert floating windows to full-screen modals on mobile */
+            .window {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: calc(100vh - var(--dock-height)) !important;
+                border-radius: 0 !important;
+                border: none !important;
+                z-index: 9000 !important;
+                display: none;
             }
 
-            100% {
-                opacity: 1;
-                filter: blur(0);
+            .window.mobile-open {
+                display: flex !important;
+                animation: slideUp 0.25s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+            }
+
+            .window-header {
+                height: 50px;
+                padding: 0 16px;
+            }
+
+            .control-btn {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+                font-size: 14px;
+                color: #fff;
+            }
+
+            .btn-maximize {
+                display: none; /* Hide maximize on mobile */
+            }
+
+            .btn-close {
+                background: rgba(255, 255, 255, 0.15);
+                position: relative;
+            }
+
+            .btn-close::after {
+                content: "✕";
+                font-size: 14px;
+                color: #fff;
+                font-weight: bold;
+            }
+
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
             }
         }
 
-        @keyframes sprayBurst {
-            0% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.35);
-            }
+        /* Project Cards styling */
+        .project-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
 
-            35% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(0.8);
-            }
+        .project-card h3 {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
 
-            100% {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(1.15);
-            }
+        .project-card p {
+            font-size: 0.85rem;
+            margin: 0;
         }
     </style>
 </head>
@@ -300,81 +450,170 @@
     <div class="desktop-canvas" id="desktop">
         <div class="snap-preview" id="snap-preview"></div>
 
-        <div class="window" id="win-1" style="width: 420px; height: 260px; left: 40px; top: 40px; z-index: 101;">
-            <div class="window-header">
-                <span class="window-title">Startseite</span>
-                <div class="window-controls">
-                    <button class="control-btn btn-maximize" onclick="openStartseite()"></button>
-                    <button class="control-btn btn-close" onclick="closeWindow('win-1')"></button>
-                </div>
+        <!-- Mobile Home Screen (App Grid) -->
+        <div class="mobile-home-screen">
+            <div class="mobile-header">
+                <h1>SKATE OS</h1>
+                <p>Wähle eine App zum Starten</p>
             </div>
-            <div class="window-body">
-                <img src="https://i.etsystatic.com/13015978/r/il/6324c4/6453468991/il_570xN.6453468991_4a4a.jpg"
-                    alt="Gruppenfoto" width="500" height="300" loading="lazy">
-                <span class="skate-wordmark" aria-label="Skate"><span class="skate-letter">S</span><span
-                        class="skate-letter">K</span><span class="skate-letter">A</span><span
-                        class="skate-letter">T</span><span class="skate-letter">E</span></span>
+            <div class="app-grid">
+                <div class="app-card" onclick="openWindowMobile('win-1')">
+                    <div class="app-icon">🛹</div>
+                    <span class="app-card-title">Startseite</span>
+                </div>
+                <div class="app-card" onclick="openWindowMobile('win-2')">
+                    <div class="app-icon">ℹ️</div>
+                    <span class="app-card-title">About Us</span>
+                </div>
+                <div class="app-card" onclick="openWindowMobile('win-3')">
+                    <div class="app-icon">🔥</div>
+                    <span class="app-card-title">Projects</span>
+                </div>
+                <div class="app-card" onclick="openWindowMobile('win-4')">
+                    <div class="app-icon">✉️</div>
+                    <span class="app-card-title">Kontakt</span>
+                </div>
             </div>
         </div>
 
-        <div class="window" id="win-2" style="width: 420px; height: 260px; left: 500px; top: 80px; z-index: 102;">
+        <div class="window" id="win-1" style="width: 440px; height: 280px; left: 40px; top: 40px; z-index: 101;">
             <div class="window-header">
-                <span class="window-title">about us</span>
+                <span class="window-title">🛹 Startseite</span>
                 <div class="window-controls">
-                    <button class="control-btn btn-maximize" onclick="toggleMaximize('win-2')"></button>
-                    <button class="control-btn btn-close" onclick="closeWindow('win-2')"></button>
+                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-1')"></button>
+                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-1')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Meine Informationen</h2>
-                <p>Hier kannst du deinen eigenen Text eintragen.</p>
+                <img src="https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?auto=format&fit=crop&w=800&q=80"
+                    alt="Skate Culture" loading="lazy" onerror="this.src='https://placehold.co/600x400/1a1d24/ff9dcc?text=SKATE+CULTURE'">
+                <span class="skate-wordmark" aria-label="SKATE">
+                    <span class="skate-letter">S</span>
+                    <span class="skate-letter">K</span>
+                    <span class="skate-letter">A</span>
+                    <span class="skate-letter">T</span>
+                    <span class="skate-letter">E</span>
+                </span>
             </div>
         </div>
 
-        <div class="window" id="win-3" style="width: 420px; height: 260px; left: 100px; top: 360px; z-index: 103;">
+        <div class="window" id="win-2" style="width: 420px; height: 280px; left: 520px; top: 80px; z-index: 102;">
             <div class="window-header">
-                <span class="window-title">projects</span>
+                <span class="window-title">ℹ️ About Us</span>
                 <div class="window-controls">
-                    <button class="control-btn btn-maximize" onclick="toggleMaximize('win-3')"></button>
-                    <button class="control-btn btn-close" onclick="closeWindow('win-3')"></button>
+                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-2')"></button>
+                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-2')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Meine Projekte</h2>
-                <p>Hier stehen die Informationen zu deinen Projekten.</p>
+                <h2>Über SKATE</h2>
+                <p>Wir verbinden Streetwear-Ästhetik, Skate-Kultur und modernes Webdesign zu einzigartigen digitalen Erlebnissen.</p>
+                <p>Unser Ziel ist es, interaktive Interfaces mit Charakter und Style zu erschaffen.</p>
             </div>
         </div>
 
-        <div class="window" id="win-4" style="width: 420px; height: 260px; left: 560px; top: 400px; z-index: 104;">
+        <div class="window" id="win-3" style="width: 440px; height: 320px; left: 100px; top: 360px; z-index: 103;">
             <div class="window-header">
-                <span class="window-title">kontact</span>
+                <span class="window-title">🔥 Projects</span>
                 <div class="window-controls">
-                    <button class="control-btn btn-maximize" onclick="toggleMaximize('win-4')"></button>
-                    <button class="control-btn btn-close" onclick="closeWindow('win-4')"></button>
+                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-3')"></button>
+                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-3')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Kontaktmöglichkeiten</h2>
-                <h3><a href="mailto:sked.services@outlook.de">kontact us</a></h3>
+                <h2>Aktuelle Projekte</h2>
+                <div class="project-card">
+                    <h3>🛹 Skate Park Finder App</h3>
+                    <p>Interaktive Map für Spots und Community-Events.</p>
+                </div>
+                <div class="project-card">
+                    <h3>👕 Urban Apparel Drop</h3>
+                    <p>Limitiertes Streetwear-Design und E-Commerce Experience.</p>
+                </div>
             </div>
         </div>
+
+        <div class="window" id="win-4" style="width: 400px; height: 250px; left: 580px; top: 390px; z-index: 104;">
+            <div class="window-header">
+                <span class="window-title">✉️ Kontakt</span>
+                <div class="window-controls">
+                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-4')"></button>
+                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-4')"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2>Kontakt aufnehmen</h2>
+                <p>Hast du Fragen oder möchtest ein Projekt starten? Schreib uns direkt eine E-Mail:</p>
+                <p style="margin-top: 15px;"><a href="mailto:sked.services@outlook.de">📩 sked.services@outlook.de</a></p>
+            </div>
+        </div>
+
+        <nav class="mobile-dock">
+            <button class="dock-item" onclick="openWindowMobile('win-1')" id="dock-win-1">
+                <span class="dock-icon">🛹</span>
+                <span>Start</span>
+            </button>
+            <button class="dock-item" onclick="openWindowMobile('win-2')" id="dock-win-2">
+                <span class="dock-icon">ℹ️</span>
+                <span>About</span>
+            </button>
+            <button class="dock-item" onclick="openWindowMobile('win-3')" id="dock-win-3">
+                <span class="dock-icon">🔥</span>
+                <span>Projects</span>
+            </button>
+            <button class="dock-item" onclick="openWindowMobile('win-4')" id="dock-win-4">
+                <span class="dock-icon">✉️</span>
+                <span>Kontakt</span>
+            </button>
+        </nav>
     </div>
 
     <script>
-        let highestZIndex = 100;
-        let windowCounter = 0;
+        let highestZIndex = 200;
         const snapPreview = document.getElementById('snap-preview');
+
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
 
         function closeWindow(id) {
             const win = document.getElementById(id);
-            if (win) win.remove();
+            if (!win) return;
+
+            if (isMobile()) {
+                win.classList.remove('mobile-open');
+                updateMobileDockActive();
+            } else {
+                win.classList.add('minimized');
+            }
         }
 
-        function openStartseite() {
-          //  window.location.href = 'index.html';
+        function openWindowMobile(id) {
+            const win = document.getElementById(id);
+            if (!win) return;
+
+            if (isMobile()) {
+                // Close all open modals first on mobile
+                document.querySelectorAll('.window').forEach(w => w.classList.remove('mobile-open'));
+                win.classList.add('mobile-open');
+                updateMobileDockActive(id);
+            } else {
+                win.classList.remove('minimized');
+                bringToFront(win);
+            }
+        }
+
+        function updateMobileDockActive(activeId = null) {
+            document.querySelectorAll('.dock-item').forEach(item => item.classList.remove('active'));
+            if (activeId) {
+                const activeDock = document.getElementById(`dock-${activeId}`);
+                if (activeDock) activeDock.classList.add('active');
+            }
         }
 
         function toggleMaximize(id) {
+            if (isMobile()) return; // No maximize on mobile needed
+
             const win = document.getElementById(id);
             if (!win) return;
 
@@ -387,13 +626,7 @@
         }
 
         function maximizeWindow(win) {
-            if (win.id === 'win-1') {
-                openStartseite();
-                //return;
-            }
-
             if (win.dataset.isMaximized !== 'true') {
-                // Vorherige Position und Größe sichern
                 win.dataset.lastLeft = win.style.left;
                 win.dataset.lastTop = win.style.top;
                 win.dataset.lastWidth = win.style.width;
@@ -411,9 +644,9 @@
         function restoreWindow(win) {
             win.style.left = win.dataset.lastLeft || '50px';
             win.style.top = win.dataset.lastTop || '50px';
-            win.style.width = win.dataset.lastWidth || '480px';
-            win.style.height = win.dataset.lastHeight || '320px';
-            win.style.borderRadius = '10px';
+            win.style.width = win.dataset.lastWidth || '420px';
+            win.style.height = win.dataset.lastHeight || '280px';
+            win.style.borderRadius = '12px';
             win.dataset.isMaximized = 'false';
         }
 
@@ -422,28 +655,24 @@
             win.style.zIndex = highestZIndex;
         }
 
-        function initInteractivity(win, x, y, w, h) {
+        function initInteractivity(win) {
             const header = win.querySelector('.window-header');
 
-            win.dataset.lastLeft = `${x}px`;
-            win.dataset.lastTop = `${y}px`;
-            win.dataset.lastWidth = `${w}px`;
-            win.dataset.lastHeight = `${h}px`;
-            win.dataset.isMaximized = 'false';
-
             win.addEventListener('mousedown', () => bringToFront(win));
-            win.addEventListener('dblclick', (e) => {
 
-                maximizeWindow(win);
-            });
-            header.addEventListener('mousedown', (e) => {
+            header.addEventListener('dblclick', (e) => {
                 if (e.target.classList.contains('control-btn')) return;
+                toggleMaximize(win.id);
+            });
+
+            // Drag function for Desktop Mouse Events
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.classList.contains('control-btn') || isMobile()) return;
 
                 win.classList.add('dragging');
+                bringToFront(win);
 
                 let isMax = win.dataset.isMaximized === 'true';
-
-                // Wenn im Vollbild gezogen wird: Sofort verkleinern und Maus ausrichten
                 if (isMax) {
                     restoreWindow(win);
                     const restoredWidth = parseInt(win.style.width);
@@ -461,7 +690,6 @@
                     win.style.left = left + 'px';
                     win.style.top = top + 'px';
 
-                    // Vorschau anzeigen, wenn Maus ganz oben am Bildschirm ist (Snap to Maximize)
                     if (pageY <= 10) {
                         snapPreview.classList.add('visible');
                     } else {
@@ -480,7 +708,6 @@
                     win.classList.remove('dragging');
                     snapPreview.classList.remove('visible');
 
-                    // Wenn am oberen Rand losgelassen: Vollbild aktivieren
                     if (e.clientY <= 10) {
                         maximizeWindow(win);
                     }
@@ -488,22 +715,20 @@
             });
         }
 
+        /* Initialize Layout & Resize Listener */
         window.onload = () => {
             const desktop = document.getElementById('desktop');
 
             document.querySelectorAll('.window').forEach((win) => {
-                const width = parseInt(win.style.width, 10);
-                const height = parseInt(win.style.height, 10);
-                const maxLeft = Math.max(0, desktop.clientWidth - width);
-                const maxTop = Math.max(0, desktop.clientHeight - height);
-                const left = Math.floor(Math.random() * (maxLeft + 1));
-                const top = Math.floor(Math.random() * (maxTop + 1));
+                initInteractivity(win);
+            });
 
-                win.style.left = `${left}px`;
-                win.style.top = `${top}px`;
-
-                highestZIndex = Math.max(highestZIndex, parseInt(win.style.zIndex, 10));
-                initInteractivity(win, left, top, width, height);
+            window.addEventListener('resize', () => {
+                if (isMobile()) {
+                    document.querySelectorAll('.window').forEach(win => {
+                        win.style.borderRadius = '';
+                    });
+                }
             });
         };
     </script>
