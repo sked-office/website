@@ -242,7 +242,7 @@
             }
         }
 
-        /* Mobile Launcher / Mobile Grid (Visible on Small Screens) */
+        /* Mobile Launcher / Mobile Grid */
         .mobile-home-screen {
             display: none;
             padding: 30px 20px;
@@ -364,7 +364,6 @@
                 display: flex;
             }
 
-            /* Convert floating windows to full-screen modals on mobile */
             .window {
                 position: fixed !important;
                 top: 0 !important;
@@ -396,7 +395,7 @@
             }
 
             .btn-maximize {
-                display: none; /* Hide maximize on mobile */
+                display: none;
             }
 
             .btn-close {
@@ -441,6 +440,91 @@
         .project-card p {
             font-size: 0.85rem;
             margin: 0;
+        }
+
+        /* DSGVO Cookie Banner Styling */
+        .cookie-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 500px;
+            background: var(--window-bg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            z-index: 20000;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cookie-banner.visible {
+            display: flex;
+        }
+
+        .cookie-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .cookie-text {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        .cookie-text a {
+            color: var(--accent-pink);
+            text-decoration: none;
+        }
+
+        .cookie-text a:hover {
+            text-decoration: underline;
+        }
+
+        .cookie-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .cookie-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .cookie-btn:active {
+            transform: scale(0.97);
+        }
+
+        .cookie-btn-accept {
+            background: var(--accent-pink);
+            color: #11141a;
+        }
+
+        .cookie-btn-accept:hover {
+            background: #ffb5d7;
+        }
+
+        .cookie-btn-essential {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .cookie-btn-essential:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
@@ -568,9 +652,51 @@
         </nav>
     </div>
 
+    <!-- DSGVO Cookie Banner Element -->
+    <div class="cookie-banner" id="cookie-banner">
+        <div class="cookie-title">🍪 Cookie-Einstellungen</div>
+        <div class="cookie-text">
+            Wir nutzen Cookies, um unsere Website für dich optimal zu gestalten und fortlaufend zu verbessern.
+            Weitere Informationen findest du in unserer <a href="#">Datenschutzerklärung</a> und unserem <a href="#">Impressum</a>.
+        </div>
+        <div class="cookie-buttons">
+            <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies('all')">Alle akzeptieren</button>
+            <button class="cookie-btn cookie-btn-essential" onclick="acceptCookies('essential')">Nur essenzielle</button>
+        </div>
+    </div>
+
     <script>
         let highestZIndex = 200;
         const snapPreview = document.getElementById('snap-preview');
+
+        /* Cookie Handling */
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function setCookie(name, value) {
+            // max-age in Sekunden: 315360000 entspricht 10 Jahren (~"für immer")
+            document.cookie = name + "=" + (value || "") + "; max-age=315360000; path=/; SameSite=Lax";
+        }
+
+        function checkCookieConsent() {
+            const consent = getCookie("cookie_consent");
+            if (!consent) {
+                document.getElementById('cookie-banner').classList.add('visible');
+            }
+        }
+
+        function acceptCookies(type) {
+            setCookie("cookie_consent", type);
+            document.getElementById('cookie-banner').classList.remove('visible');
+        }
 
         function isMobile() {
             return window.innerWidth <= 768;
@@ -593,7 +719,6 @@
             if (!win) return;
 
             if (isMobile()) {
-                // Close all open modals first on mobile
                 document.querySelectorAll('.window').forEach(w => w.classList.remove('mobile-open'));
                 win.classList.add('mobile-open');
                 updateMobileDockActive(id);
@@ -612,7 +737,7 @@
         }
 
         function toggleMaximize(id) {
-            if (isMobile()) return; // No maximize on mobile needed
+            if (isMobile()) return;
 
             const win = document.getElementById(id);
             if (!win) return;
@@ -665,7 +790,6 @@
                 toggleMaximize(win.id);
             });
 
-            // Drag function for Desktop Mouse Events
             header.addEventListener('mousedown', (e) => {
                 if (e.target.classList.contains('control-btn') || isMobile()) return;
 
@@ -715,9 +839,9 @@
             });
         }
 
-        /* Initialize Layout & Resize Listener */
+        /* Initialize Layout & Check Cookie Consent */
         window.onload = () => {
-            const desktop = document.getElementById('desktop');
+            checkCookieConsent();
 
             document.querySelectorAll('.window').forEach((win) => {
                 initInteractivity(win);
