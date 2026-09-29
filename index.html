@@ -537,24 +537,24 @@
         <!-- Mobile Home Screen (App Grid) -->
         <div class="mobile-home-screen">
             <div class="mobile-header">
-                <h1>SKATE OS</h1>
-                <p>Wähle eine App zum Starten</p>
+                <h1>SKED</h1>
+                <p>Willkommen bei SKED</p>
             </div>
             <div class="app-grid">
                 <div class="app-card" onclick="openWindowMobile('win-1')">
-                    <div class="app-icon">🛹</div>
+                    <div class="app-icon"></div>
                     <span class="app-card-title">Startseite</span>
                 </div>
                 <div class="app-card" onclick="openWindowMobile('win-2')">
-                    <div class="app-icon">ℹ️</div>
+                    <div class="app-icon"></div>
                     <span class="app-card-title">About Us</span>
                 </div>
                 <div class="app-card" onclick="openWindowMobile('win-3')">
-                    <div class="app-icon">🔥</div>
+                    <div class="app-icon"></div>
                     <span class="app-card-title">Projects</span>
                 </div>
                 <div class="app-card" onclick="openWindowMobile('win-4')">
-                    <div class="app-icon">✉️</div>
+                    <div class="app-icon"></div>
                     <span class="app-card-title">Kontakt</span>
                 </div>
             </div>
@@ -562,7 +562,7 @@
 
         <div class="window" id="win-1" style="width: 440px; height: 280px; left: 40px; top: 40px; z-index: 101;">
             <div class="window-header">
-                <span class="window-title">🛹 Startseite</span>
+                <span class="window-title">Startseite</span>
                 <div class="window-controls">
                     <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-1')"></button>
                     <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-1')"></button>
@@ -574,25 +574,23 @@
                 <span class="skate-wordmark" aria-label="SKATE">
                     <span class="skate-letter">S</span>
                     <span class="skate-letter">K</span>
-                    <span class="skate-letter">A</span>
-                    <span class="skate-letter">T</span>
                     <span class="skate-letter">E</span>
+                    <span class="skate-letter">D</span>
                 </span>
             </div>
         </div>
 
         <div class="window" id="win-2" style="width: 420px; height: 280px; left: 520px; top: 80px; z-index: 102;">
             <div class="window-header">
-                <span class="window-title">ℹ️ About Us</span>
+                <span class="window-title"> About Us</span>
                 <div class="window-controls">
                     <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-2')"></button>
                     <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-2')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Über SKATE</h2>
-                <p>Wir verbinden Streetwear-Ästhetik, Skate-Kultur und modernes Webdesign zu einzigartigen digitalen Erlebnissen.</p>
-                <p>Unser Ziel ist es, interaktive Interfaces mit Charakter und Style zu erschaffen.</p>
+                <h2>Über SKED</h2>
+                <p>Wir wollen der Welt das Skaten näher bringen.</p>
             </div>
         </div>
 
@@ -607,26 +605,22 @@
             <div class="window-body">
                 <h2>Aktuelle Projekte</h2>
                 <div class="project-card">
-                    <h3>🛹 Skate Park Finder App</h3>
-                    <p>Interaktive Map für Spots und Community-Events.</p>
-                </div>
-                <div class="project-card">
-                    <h3>👕 Urban Apparel Drop</h3>
-                    <p>Limitiertes Streetwear-Design und E-Commerce Experience.</p>
+                    <h3> Skate Park Finder App</h3>
+                    <p>Derzeit noch nicht verfügbar (Release noch unbekannt)</p>
                 </div>
             </div>
         </div>
 
         <div class="window" id="win-4" style="width: 400px; height: 250px; left: 580px; top: 390px; z-index: 104;">
             <div class="window-header">
-                <span class="window-title">✉️ Kontakt</span>
+                <span class="window-title">Kontakt</span>
                 <div class="window-controls">
                     <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-4')"></button>
                     <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-4')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Kontakt aufnehmen</h2>
+                <h2>Kontakt</h2>
                 <p>Hast du Fragen oder möchtest ein Projekt starten? Schreib uns direkt eine E-Mail:</p>
                 <p style="margin-top: 15px;"><a href="mailto:sked.services@outlook.de">📩 sked.services@outlook.de</a></p>
             </div>
@@ -634,15 +628,15 @@
 
         <nav class="mobile-dock">
             <button class="dock-item" onclick="openWindowMobile('win-1')" id="dock-win-1">
-                <span class="dock-icon">🛹</span>
-                <span>Start</span>
+                <span class="dock-icon"></span>
+                <span>Homepage</span>
             </button>
             <button class="dock-item" onclick="openWindowMobile('win-2')" id="dock-win-2">
-                <span class="dock-icon">ℹ️</span>
-                <span>About</span>
+                <span class="dock-icon"></span>
+                <span>About us</span>
             </button>
             <button class="dock-item" onclick="openWindowMobile('win-3')" id="dock-win-3">
-                <span class="dock-icon">🔥</span>
+                <span class="dock-icon"></span>
                 <span>Projects</span>
             </button>
             <button class="dock-item" onclick="openWindowMobile('win-4')" id="dock-win-4">
