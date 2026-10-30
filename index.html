@@ -1,10 +1,17 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SKED</title>
+    
+    <!-- Phosphor Icons & Fonts -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800;900&family=Permanent+Marker&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+
     <style>
         * {
             box-sizing: border-box;
@@ -16,30 +23,30 @@
         }
 
         :root {
-            --bg-color: #11141a;
-            --window-bg: #1a1d24;
-            --header-bg: #232730;
-            --accent-pink: #ff9dcc;
-            --accent-pink-dark: #f15b9b;
+            --bg-color: #0D0E12;
+            --window-bg: #16181F;
+            --header-bg: #202430;
+            --accent-pink: #FF007F;
+            --accent-lime: #CCFF00;
+            --accent-pink-dark: #7b6386;
             --text-main: #ffffff;
             --text-sub: #a0a5b5;
-            --dock-height: 65px;
         }
 
-        html,
-        body {
+        html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
             background: var(--bg-color);
             color: var(--text-main);
+            touch-action: none;
         }
 
         .desktop-canvas {
             position: relative;
             width: 100vw;
             height: 100vh;
-            background: radial-gradient(circle at 50% 30%, #1e2430 0%, #0d0f14 100%);
+            background: radial-gradient(circle at 50% 30%, #1a1e29 0%, #0d0e12 100%);
             overflow: hidden;
         }
 
@@ -50,8 +57,8 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(255, 157, 204, 0.15);
-            border: 2px dashed rgba(255, 157, 204, 0.5);
+            background: rgba(255, 0, 127, 0.15);
+            border: 2px dashed rgba(255, 0, 127, 0.5);
             border-radius: 12px;
             pointer-events: none;
             opacity: 0;
@@ -63,23 +70,25 @@
             opacity: 1;
         }
 
+        /* Responsive Window Structure */
         .window {
             position: absolute;
             background: var(--window-bg);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 12px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            min-width: 280px;
-            min-height: 180px;
+            min-width: 260px;
+            min-height: 160px;
             transition: top 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
-                left 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
-                width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
-                height 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
-                opacity 0.2s ease,
-                transform 0.2s ease;
+                        left 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        width 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        height 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        opacity 0.2s ease,
+                        transform 0.2s ease;
+            touch-action: none;
         }
 
         .window.dragging {
@@ -92,20 +101,31 @@
             transform: scale(0.8) translateY(100px);
         }
 
+        .window.maximized {
+            border-radius: 0 !important;
+            border: none !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+        }
+
         .window-header {
-            height: 42px;
+            height: 44px;
             background: var(--header-bg);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             cursor: move;
             touch-action: none;
+            flex-shrink: 0;
+            z-index: 10;
         }
 
         .window-title {
-            font-size: 14px;
+            font-size: clamp(0.85rem, 1.3vw, 1.1rem);
             font-weight: 600;
             color: var(--text-sub);
             letter-spacing: 0.5px;
@@ -136,38 +156,107 @@
             transform: scale(0.85);
         }
 
-        .btn-close {
-            background: #ff5f56;
-        }
-
-        .btn-maximize {
-            background: #27c93f;
-        }
+        .btn-close { background: #ff5f56; }
+        .btn-maximize { background: #27c93f; }
 
         .window-body {
-            padding: 20px;
+            position: relative;
+            padding: 0;
             flex-grow: 1;
-            overflow-y: auto;
+            overflow: hidden;
             color: #d1d5db;
             user-select: text;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
+        /* Hide Scrollbars entirely */
+        .window-body::-webkit-scrollbar {
+            display: none;
+        }
+        .window-body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* STANDARD WINDOW VIEW: Hide full text & contents, show ONLY titles over full background */
+        .window-body p, 
+        .window-body .project-card,
+        .window-body .dsgvo-container {
+            display: none !important;
+        }
+
+        /* MAXIMIZED VIEW: Show full contents, texts and cards with scrolling */
+        .window.maximized .window-body {
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        .window.maximized .window-body p,
+        .window.maximized .window-body .project-card,
+        .window.maximized .window-body .dsgvo-container {
+            display: block !important;
+        }
+
+        #win-dsgvo.window.maximized .window-body {
+            justify-content: flex-start;
+            align-items: stretch;
+            text-align: left;
+        }
+
+        /* Background Image covering 100% of the tab */
+        .window-bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .window-body > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Titles in normal window view (visible over the full background image) */
         .window-body h2 {
-            font-size: clamp(1.2rem, 3vw, 1.6rem);
+            font-size: clamp(1.8rem, 3.5vw, 3.5rem);
             color: #ffffff;
-            margin-bottom: 12px;
-            font-weight: 700;
+            font-weight: 800;
+            line-height: 1.1;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.9);
+            display: block !important;
+        }
+
+        /* Titles when maximized */
+        .window.maximized .window-body h2 {
+            font-size: clamp(2.2rem, 5vw, 4.5rem);
+            margin-bottom: 16px;
+        }
+
+        .window.maximized .window-body p {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            max-width: 800px;
         }
 
         .window-body p {
             line-height: 1.6;
-            font-size: 0.95rem;
-            color: #b0b5c4;
+            color: #f1f3f7;
             margin-bottom: 12px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
 
         .window-body a {
-            color: var(--accent-pink);
+            color: var(--accent-lime);
             text-decoration: none;
             font-weight: bold;
             transition: color 0.2s;
@@ -178,21 +267,11 @@
             text-decoration: underline;
         }
 
-        /* Specific Window Styles */
+        /* Win 1 Wordmark */
         #win-1 .window-body {
-            position: relative;
-            padding: 0;
-            overflow: hidden;
-            display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        #win-1 .window-body img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
+            padding: 0;
         }
 
         .skate-wordmark {
@@ -201,15 +280,16 @@
             left: 50%;
             color: var(--accent-pink);
             font-family: "Cooper Black", "Arial Rounded MT Bold", "Arial Black", sans-serif;
-            font-size: clamp(2.8rem, 12vw, 6rem);
+            font-size: clamp(3rem, 14vw, 9rem);
             font-weight: 900;
             letter-spacing: -0.05em;
             line-height: 1;
             white-space: nowrap;
-            text-shadow: 3px 3px 0 var(--accent-pink-dark), 7px 8px 0 #11141a, 0 0 20px rgba(0, 0, 0, 0.9);
+            text-shadow: 4px 4px 0 var(--accent-pink-dark), 8px 10px 0 #11141a, 0 0 25px rgba(0, 0, 0, 0.9);
             transform: translate(-50%, -50%) rotate(-4deg);
             z-index: 2;
             pointer-events: none;
+            display: block !important;
         }
 
         .skate-letter {
@@ -229,7 +309,6 @@
         .skate-letter:nth-child(2) { --delay: 280ms; --start-angle: 14deg; --end-angle: 4deg; }
         .skate-letter:nth-child(3) { --delay: 360ms; --start-angle: -16deg; --end-angle: -3deg; }
         .skate-letter:nth-child(4) { --delay: 440ms; --start-angle: 18deg; --end-angle: 6deg; }
-        .skate-letter:nth-child(5) { --delay: 520ms; --start-angle: -12deg; --end-angle: -4deg; }
 
         @keyframes letterSpray {
             0% {
@@ -242,207 +321,112 @@
             }
         }
 
-        /* Mobile Launcher / Mobile Grid */
-        .mobile-home-screen {
-            display: none;
-            padding: 30px 20px;
-            height: calc(100vh - var(--dock-height));
-            overflow-y: auto;
-        }
-
-        .mobile-header {
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        .mobile-header h1 {
-            font-size: 2rem;
-            font-weight: 900;
-            letter-spacing: -1px;
-            color: #fff;
-        }
-
-        .mobile-header p {
-            color: var(--text-sub);
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-        .app-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .app-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
-        }
-
-        .app-card:active {
-            background: rgba(255, 255, 255, 0.12);
-            transform: scale(0.96);
-        }
-
-        .app-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #2a2f3a, #1a1d24);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .app-card-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .mobile-dock {
-            display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: var(--dock-height);
-            background: rgba(23, 26, 33, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 10000;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 10px;
-        }
-
-        .dock-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            color: var(--text-sub);
-            font-size: 0.75rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            width: 60px;
-            height: 100%;
-            transition: color 0.2s;
-        }
-
-        .dock-item.active {
-            color: var(--accent-pink);
-        }
-
-        .dock-icon {
-            font-size: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .mobile-home-screen {
-                display: block;
-            }
-
-            .mobile-dock {
-                display: flex;
-            }
-
-            .window {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100vw !important;
-                height: calc(100vh - var(--dock-height)) !important;
-                border-radius: 0 !important;
-                border: none !important;
-                z-index: 9000 !important;
-                display: none;
-            }
-
-            .window.mobile-open {
-                display: flex !important;
-                animation: slideUp 0.25s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
-            }
-
-            .window-header {
-                height: 50px;
-                padding: 0 16px;
-            }
-
-            .control-btn {
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                font-size: 14px;
-                color: #fff;
-            }
-
-            .btn-maximize {
-                display: none;
-            }
-
-            .btn-close {
-                background: rgba(255, 255, 255, 0.15);
-                position: relative;
-            }
-
-            .btn-close::after {
-                content: "✕";
-                font-size: 14px;
-                color: #fff;
-                font-weight: bold;
-            }
-
-            @keyframes slideUp {
-                from {
-                    transform: translateY(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
-            }
-        }
-
-        /* Project Cards styling */
+        /* Project Cards */
         .project-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-            padding: 12px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 18px;
             margin-bottom: 12px;
+            width: 100%;
+        }
+
+        .window.maximized .project-card {
+            max-width: 600px;
+            text-align: left;
         }
 
         .project-card h3 {
             color: #fff;
-            font-size: 1rem;
-            margin-bottom: 4px;
+            font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+            margin-bottom: 6px;
         }
 
         .project-card p {
-            font-size: 0.85rem;
+            font-size: clamp(0.95rem, 1.3vw, 1.15rem);
             margin: 0;
         }
 
-        /* DSGVO Cookie Banner Styling */
+        /* DSGVO Window Content */
+        .dsgvo-container {
+            background-color: rgba(13, 14, 18, 0.9);
+            border: 2px solid var(--accent-lime);
+            padding: clamp(20px, 4vw, 40px);
+            border-radius: 10px;
+            color: #d1d5db;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .window.maximized .dsgvo-container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        .dsgvo-header {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(1.8rem, 3.5vw, 3.2rem);
+            color: #fff;
+            line-height: 1.1;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .dsgvo-tag {
+            background: #000;
+            color: var(--accent-lime);
+            font-family: monospace;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border: 1px solid var(--accent-lime);
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .dsgvo-section {
+            background: rgba(0,0,0,0.6);
+            padding: 18px;
+            border-left: 4px solid var(--accent-lime);
+            margin-bottom: 15px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .dsgvo-expandable {
+            display: none;
+            margin-top: 15px;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dsgvo-expandable.expanded {
+            display: flex;
+        }
+
+        .dsgvo-btn {
+            background: var(--accent-lime);
+            color: #000;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            padding: 10px 22px;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            margin-top: 10px;
+        }
+
+        .dsgvo-btn:hover {
+            background: #fff;
+            box-shadow: 4px 4px 0px var(--accent-pink);
+        }
+
+        /* Cookie Banner */
         .cookie-banner {
             position: fixed;
             bottom: 20px;
@@ -466,13 +450,13 @@
         }
 
         .cookie-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: bold;
             color: #fff;
         }
 
         .cookie-text {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-sub);
             line-height: 1.4;
         }
@@ -480,6 +464,8 @@
         .cookie-text a {
             color: var(--accent-pink);
             text-decoration: none;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         .cookie-text a:hover {
@@ -500,7 +486,7 @@
             border-radius: 6px;
             border: none;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
         }
@@ -511,11 +497,11 @@
 
         .cookie-btn-accept {
             background: var(--accent-pink);
-            color: #11141a;
+            color: #ffffff;
         }
 
         .cookie-btn-accept:hover {
-            background: #ffb5d7;
+            background: #ff3399;
         }
 
         .cookie-btn-essential {
@@ -534,44 +520,18 @@
     <div class="desktop-canvas" id="desktop">
         <div class="snap-preview" id="snap-preview"></div>
 
-        <!-- Mobile Home Screen (App Grid) -->
-        <div class="mobile-home-screen">
-            <div class="mobile-header">
-                <h1>SKED</h1>
-                <p>Willkommen bei SKED</p>
-            </div>
-            <div class="app-grid">
-                <div class="app-card" onclick="openWindowMobile('win-1')">
-                    <div class="app-icon">S</div>
-                    <span class="app-card-title">Startseite</span>
-                </div>
-                <div class="app-card" onclick="openWindowMobile('win-2')">
-                    <div class="app-icon">A</div>
-                    <span class="app-card-title">About Us</span>
-                </div>
-                <div class="app-card" onclick="openWindowMobile('win-3')">
-                    <div class="app-icon">P</div>
-                    <span class="app-card-title">Projects</span>
-                </div>
-                <div class="app-card" onclick="openWindowMobile('win-4')">
-                    <div class="app-icon">K</div>
-                    <span class="app-card-title">Kontakt</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="window" id="win-1" style="width: 440px; height: 280px; left: 40px; top: 40px; z-index: 101;">
+        <!-- WIN 1: Homepage -->
+        <div class="window" id="win-1" style="width: min(85vw, 440px); height: min(45vh, 260px); left: 5vw; top: 4vh; z-index: 101;">
             <div class="window-header">
-                <span class="window-title">Startseite</span>
+                <span class="window-title">Homepage</span>
                 <div class="window-controls">
-                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-1')"></button>
-                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-1')"></button>
+                    <button class="control-btn btn-maximize" title="Maximize" onclick="toggleMaximize('win-1')"></button>
+                    <button class="control-btn btn-close" title="Close" onclick="closeWindow('win-1')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <img src="https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?auto=format&fit=crop&w=800&q=80"
-                    alt="Skate Culture" loading="lazy" onerror="this.src='https://placehold.co/600x400/1a1d24/ff9dcc?text=SKATE+CULTURE'">
-                <span class="skate-wordmark" aria-label="SKATE">
+                <img class="window-bg-img" src="https://images.squarespace-cdn.com/content/v1/5ebecf15da3f1d1078d5a551/a2da643c-be93-435c-8a12-3233514eec57/20231027_Mehring_SSP_Nashville_DSC08235.jpg" alt="Skate Background">
+                <span class="skate-wordmark" aria-label="SKED">
                     <span class="skate-letter">S</span>
                     <span class="skate-letter">K</span>
                     <span class="skate-letter">E</span>
@@ -580,85 +540,128 @@
             </div>
         </div>
 
-        <div class="window" id="win-2" style="width: 420px; height: 280px; left: 520px; top: 80px; z-index: 102;">
+        <!-- WIN 2: About Us -->
+        <div class="window" id="win-2" style="width: min(85vw, 400px); height: min(40vh, 230px); left: 10vw; top: 28vh; z-index: 102;">
             <div class="window-header">
-                <span class="window-title"> About Us</span>
+                <span class="window-title">About Us</span>
                 <div class="window-controls">
-                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-2')"></button>
-                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-2')"></button>
+                    <button class="control-btn btn-maximize" title="Maximize" onclick="toggleMaximize('win-2')"></button>
+                    <button class="control-btn btn-close" title="Close" onclick="closeWindow('win-2')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Über SKED</h2>
-                <p>Wir wollen der Welt das Skaten näher bringen.</p>
+                <img class="window-bg-img" src="https://www.hawaiisurf.com/cdn/shop/articles/les-premieres-etapes-en-skateboard-pour-les-enfants-de-la-pratique-a-la-maitrise-119232.jpg?v=1723533773" alt="Skate Background">
+                <h2>About SKED</h2>
+                <p>We want to bring skateboarding closer to the world.</p>
             </div>
         </div>
 
-        <div class="window" id="win-3" style="width: 440px; height: 320px; left: 100px; top: 360px; z-index: 103;">
+        <!-- WIN 3: Projects -->
+        <div class="window" id="win-3" style="width: min(85vw, 420px); height: min(42vh, 250px); left: 15vw; top: 50vh; z-index: 103;">
             <div class="window-header">
                 <span class="window-title">🔥 Projects</span>
-                <img src="https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?auto=format&fit=crop&w=800&q=80"
-                    alt="Skate Culture" loading="lazy" onerror="this.src='https://placehold.co/600x400/1a1d24/ff9dcc?text=SKATE+CULTURE'"
-                    style="width: 20px; height: 20px; border-radius: 4px; margin-left: 8px;">
                 <div class="window-controls">
-                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-3')"></button>
-                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-3')"></button>
+                    <button class="control-btn btn-maximize" title="Maximize" onclick="toggleMaximize('win-3')"></button>
+                    <button class="control-btn btn-close" title="Close" onclick="closeWindow('win-3')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Aktuelle Projekte</h2>
+                <img class="window-bg-img" src="https://static.nike.com/a/images/f_auto,cs_srgb/w_1536,c_limit/26da2155-9f77-4952-b1e8-bf459e2eb395/skateboarden-f%C3%BCr-anf%C3%A4nger-innen.jpg" alt="Skate Background">
+                <h2>Current Projects</h2>
                 <div class="project-card">
-                    <h3> Skate Park Finder App</h3>
-                    <p>Derzeit noch nicht verfügbar (Release noch unbekannt)</p>
+                    <h3>Skate Park Finder App</h3>
+                    <p>Currently not available (Release date unknown)</p>
                 </div>
             </div>
         </div>
 
-        <div class="window" id="win-4" style="width: 400px; height: 250px; left: 580px; top: 390px; z-index: 104;">
+        <!-- WIN 4: Contact -->
+        <div class="window" id="win-4" style="width: min(85vw, 380px); height: min(38vh, 220px); left: 8vw; top: 70vh; z-index: 104;">
             <div class="window-header">
-                <span class="window-title">Kontakt</span>
+                <span class="window-title">Contact</span>
                 <div class="window-controls">
-                    <button class="control-btn btn-maximize" title="Maximieren" onclick="toggleMaximize('win-4')"></button>
-                    <button class="control-btn btn-close" title="Schließen" onclick="closeWindow('win-4')"></button>
+                    <button class="control-btn btn-maximize" title="Maximize" onclick="toggleMaximize('win-4')"></button>
+                    <button class="control-btn btn-close" title="Close" onclick="closeWindow('win-4')"></button>
                 </div>
             </div>
             <div class="window-body">
-                <h2>Kontakt</h2>
-                <p>Hast du Fragen oder möchtest ein Projekt starten? Schreib uns direkt eine E-Mail:</p>
+                <img class="window-bg-img" src="https://images.squarespace-cdn.com/content/v1/5ebecf15da3f1d1078d5a551/a2da643c-be93-435c-8a12-3233514eec57/20231027_Mehring_SSP_Nashville_DSC08235.jpg" alt="Skate Background">
+                <h2>Contact</h2>
+                <p>Do you have questions or want to start a project? Send us a direct email:</p>
                 <p style="margin-top: 15px;"><a href="mailto:sked.services@outlook.de">📩 sked.services@outlook.de</a></p>
             </div>
         </div>
 
-        <nav class="mobile-dock">
-            <button class="dock-item" onclick="openWindowMobile('win-1')" id="dock-win-1">
-                <span class="dock-icon"></span>
-                <span>Homepage</span>
-            </button>
-            <button class="dock-item" onclick="openWindowMobile('win-2')" id="dock-win-2">
-                <span class="dock-icon"></span>
-                <span>About us</span>
-            </button>
-            <button class="dock-item" onclick="openWindowMobile('win-3')" id="dock-win-3">
-                <span class="dock-icon"></span>
-                <span>Projects</span>
-            </button>
-            <button class="dock-item" onclick="openWindowMobile('win-4')" id="dock-win-4">
-                <span class="dock-icon">✉️</span>
-                <span>Kontakt</span>
-            </button>
-        </nav>
+        <!-- WIN DSGVO: Datenschutzerklärung -->
+        <div class="window minimized" id="win-dsgvo" style="width: min(90vw, 680px); height: min(80vh, 550px); left: 5vw; top: 5vh; z-index: 105;">
+            <div class="window-header">
+                <span class="window-title">🛡️ Datenschutzerklärung</span>
+                <div class="window-controls">
+                    <button class="control-btn btn-maximize" title="Maximize" onclick="toggleMaximize('win-dsgvo')"></button>
+                    <button class="control-btn btn-close" title="Close" onclick="closeWindow('win-dsgvo')"></button>
+                </div>
+            </div>
+            <div class="window-body">
+                <img class="window-bg-img" src="https://www.hawaiisurf.com/cdn/shop/articles/les-premieres-etapes-en-skateboard-pour-les-enfants-de-la-pratique-a-la-maitrise-119232.jpg?v=1723533773" alt="Skate Background">
+                <h2>Datenschutzerklärung</h2>
+                <div class="dsgvo-container">
+                    <span class="dsgvo-tag">SKED 2026</span>
+                    <h1 class="dsgvo-header">MEINE SKED-DATENSCHUTZERKLÄRUNG</h1>
+                    
+                    <div class="dsgvo-section">
+                        <p>Die folgenden Hinweise bieten einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten geschieht, wenn Sie unsere Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.</p>
+                    </div>
+
+                    <button class="dsgvo-btn" onclick="toggleDSGVOContent()">
+                        <span id="dsgvoBtnText">MEHR LESEN</span>
+                        <i id="dsgvoBtnIcon" class="ph-bold ph-caret-down"></i>
+                    </button>
+
+                    <div id="dsgvoExpandable" class="dsgvo-expandable">
+                        <p class="text-gray-300 leading-relaxed">
+                            Datenerfassung auf unserer Website<br>
+                            Der Schutz Ihrer Daten ist uns ein wichtiges Anliegen. Auf dieser Website selbst werden keine personenbezogenen Daten erfasst, verarbeitet oder dauerhaft gespeichert.<br>
+                            • Es werden keine Cookies oder Tracking-Technologien verwendet.<br>
+                            • Es kommen keine Analyse-Dienste (wie z. B. Google Analytics) zum Einsatz.<br>
+                            • Es gibt keine Online-Formulare oder Registrierungsmöglichkeiten auf der Website.
+                        </p>
+
+                        <p class="text-gray-300 leading-relaxed">
+                            Die verantwortliche Stelle für die Datenverarbeitung auf dieser Website im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:<br>
+                            [SKED]<br>
+                            [Österreich]<br><br>
+                            Vertreten durch den Vorstand:<br>
+                            [Elias Leonfellner, CEO]<br>
+                            [Noah Berg, IT-Abteilleiter]<br><br>
+                            Kontakt:<br>
+                            E-Mail: [sked.services@outlook.de]<br><br>
+                            Rechtsgrundlage: Die Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO. Der Websitebetreiber hat ein berechtigtes Interesse an der technisch fehlerfreien Darstellung und der Stabilität seiner Website.<br>
+                            --------------------------------------------------------------------------------<br>
+                            Sie haben im Rahmen der geltenden gesetzlichen Bestimmungen (DSGVO) jederzeit das Recht auf:<br>
+                            • Auskunft über Ihre bei uns verarbeiteten personenbezogenen Daten (Art. 15 DSGVO)<br>
+                            • Berichtigung unrichtiger oder Vervollständigung Ihrer bei uns gespeicherten Daten (Art. 16 DSGVO)<br>
+                            • Löschung Ihrer bei uns gespeicherten Daten (Art. 17 DSGVO)<br>
+                            • Einschränkung der Verarbeitung Ihrer Daten (Art. 18 DSGVO)<br>
+                            • Widerspruch gegen die Verarbeitung Ihrer Daten (Art. 21 DSGVO)<br>
+                            • Datenübertragbarkeit (Art. 20 DSGVO)<br>
+                            Sofern eine Datenverarbeitung auf Ihrer Einwilligung beruht, können Sie diese jederzeit mit Wirkung für die Zukunft widerrufen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- DSGVO Cookie Banner Element -->
+    <!-- Cookie Banner -->
     <div class="cookie-banner" id="cookie-banner">
-        <div class="cookie-title">🍪 Cookie-Einstellungen</div>
+        <div class="cookie-title">🍪 Cookie Settings</div>
         <div class="cookie-text">
-            Wir nutzen Cookies, um unsere Website für dich optimal zu gestalten und fortlaufend zu verbessern.
-            Weitere Informationen findest du in unserer <a href="#">Datenschutzerklärung</a> und unserem <a href="#">Impressum</a>.
+            We use cookies to optimize and continuously improve our website for you.
+            Find further information in our <a onclick="openWindowDirect('win-dsgvo')">Privacy Policy</a>.
         </div>
         <div class="cookie-buttons">
-            <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies('all')">Alle akzeptieren</button>
-            <button class="cookie-btn cookie-btn-essential" onclick="acceptCookies('essential')">Nur essenzielle</button>
+            <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies('all')">Accept All</button>
+            <button class="cookie-btn cookie-btn-essential" onclick="acceptCookies('essential')">Essential Only</button>
         </div>
     </div>
 
@@ -666,28 +669,12 @@
         let highestZIndex = 200;
         const snapPreview = document.getElementById('snap-preview');
 
-        /* Cookie Handling */
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for(let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
         function setCookie(name, value) {
-            // max-age in Sekunden: 315360000 entspricht 10 Jahren (~"für immer")
             document.cookie = name + "=" + (value || "") + "; max-age=315360000; path=/; SameSite=Lax";
         }
 
-        function checkCookieConsent() {
-            const consent = getCookie("cookie_consent");
-            if (!consent) {
-                document.getElementById('cookie-banner').classList.add('visible');
-            }
+        function showCookieBanner() {
+            document.getElementById('cookie-banner').classList.add('visible');
         }
 
         function acceptCookies(type) {
@@ -695,47 +682,20 @@
             document.getElementById('cookie-banner').classList.remove('visible');
         }
 
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-
         function closeWindow(id) {
             const win = document.getElementById(id);
             if (!win) return;
-
-            if (isMobile()) {
-                win.classList.remove('mobile-open');
-                updateMobileDockActive();
-            } else {
-                win.classList.add('minimized');
-            }
+            win.classList.add('minimized');
         }
 
-        function openWindowMobile(id) {
+        function openWindowDirect(id) {
             const win = document.getElementById(id);
             if (!win) return;
-
-            if (isMobile()) {
-                document.querySelectorAll('.window').forEach(w => w.classList.remove('mobile-open'));
-                win.classList.add('mobile-open');
-                updateMobileDockActive(id);
-            } else {
-                win.classList.remove('minimized');
-                bringToFront(win);
-            }
-        }
-
-        function updateMobileDockActive(activeId = null) {
-            document.querySelectorAll('.dock-item').forEach(item => item.classList.remove('active'));
-            if (activeId) {
-                const activeDock = document.getElementById(`dock-${activeId}`);
-                if (activeDock) activeDock.classList.add('active');
-            }
+            win.classList.remove('minimized');
+            bringToFront(win);
         }
 
         function toggleMaximize(id) {
-            if (isMobile()) return;
-
             const win = document.getElementById(id);
             if (!win) return;
 
@@ -759,16 +719,16 @@
             win.style.top = '0px';
             win.style.width = '100vw';
             win.style.height = '100vh';
-            win.style.borderRadius = '0px';
+            win.classList.add('maximized');
             win.dataset.isMaximized = 'true';
         }
 
         function restoreWindow(win) {
-            win.style.left = win.dataset.lastLeft || '50px';
-            win.style.top = win.dataset.lastTop || '50px';
-            win.style.width = win.dataset.lastWidth || '420px';
-            win.style.height = win.dataset.lastHeight || '280px';
-            win.style.borderRadius = '12px';
+            win.style.left = win.dataset.lastLeft || '5vw';
+            win.style.top = win.dataset.lastTop || '5vh';
+            win.style.width = win.dataset.lastWidth || '380px';
+            win.style.height = win.dataset.lastHeight || '240px';
+            win.classList.remove('maximized');
             win.dataset.isMaximized = 'false';
         }
 
@@ -777,18 +737,28 @@
             win.style.zIndex = highestZIndex;
         }
 
+        function toggleDSGVOContent() {
+            const expandable = document.getElementById('dsgvoExpandable');
+            const btnText = document.getElementById('dsgvoBtnText');
+            const btnIcon = document.getElementById('dsgvoBtnIcon');
+
+            if (expandable.classList.contains('expanded')) {
+                expandable.classList.remove('expanded');
+                btnText.textContent = 'MEHR LESEN';
+                btnIcon.className = 'ph-bold ph-caret-down';
+            } else {
+                expandable.classList.add('expanded');
+                btnText.textContent = 'WENIGER LESEN';
+                btnIcon.className = 'ph-bold ph-caret-up';
+            }
+        }
+
+        /* Combined Mouse & Touch Dragging Handler for Desktop & Mobile */
         function initInteractivity(win) {
             const header = win.querySelector('.window-header');
 
-            win.addEventListener('mousedown', () => bringToFront(win));
-
-            header.addEventListener('dblclick', (e) => {
-                if (e.target.classList.contains('control-btn')) return;
-                toggleMaximize(win.id);
-            });
-
-            header.addEventListener('mousedown', (e) => {
-                if (e.target.classList.contains('control-btn') || isMobile()) return;
+            const startDrag = (clientX, clientY, target) => {
+                if (target.classList.contains('control-btn')) return;
 
                 win.classList.add('dragging');
                 bringToFront(win);
@@ -796,15 +766,15 @@
                 let isMax = win.dataset.isMaximized === 'true';
                 if (isMax) {
                     restoreWindow(win);
-                    const restoredWidth = parseInt(win.style.width);
-                    win.style.left = `${e.clientX - restoredWidth / 2}px`;
-                    win.style.top = `${e.clientY - 15}px`;
+                    const restoredWidth = win.offsetWidth;
+                    win.style.left = `${clientX - restoredWidth / 2}px`;
+                    win.style.top = `${clientY - 15}px`;
                 }
 
-                let shiftX = e.clientX - win.getBoundingClientRect().left;
-                let shiftY = e.clientY - win.getBoundingClientRect().top;
+                let shiftX = clientX - win.getBoundingClientRect().left;
+                let shiftY = clientY - win.getBoundingClientRect().top;
 
-                function moveAt(pageX, pageY) {
+                const moveAt = (pageX, pageY) => {
                     let left = pageX - shiftX;
                     let top = pageY - shiftY;
 
@@ -816,40 +786,57 @@
                     } else {
                         snapPreview.classList.remove('visible');
                     }
-                }
+                };
 
-                function onMouseMove(e) {
-                    moveAt(e.clientX, e.clientY);
-                }
+                const onMove = (e) => {
+                    let pageX = e.touches ? e.touches[0].clientX : e.clientX;
+                    let pageY = e.touches ? e.touches[0].clientY : e.clientY;
+                    moveAt(pageX, pageY);
+                };
 
-                document.addEventListener('mousemove', onMouseMove);
+                const onEnd = (e) => {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onEnd);
+                    document.removeEventListener('touchmove', onMove);
+                    document.removeEventListener('touchend', onEnd);
 
-                document.addEventListener('mouseup', (e) => {
-                    document.removeEventListener('mousemove', onMouseMove);
                     win.classList.remove('dragging');
                     snapPreview.classList.remove('visible');
 
-                    if (e.clientY <= 10) {
+                    let clientYEnd = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+                    if (clientYEnd <= 10) {
                         maximizeWindow(win);
                     }
-                }, { once: true });
+                };
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('touchend', onEnd);
+            };
+
+            win.addEventListener('mousedown', () => bringToFront(win));
+            win.addEventListener('touchstart', () => bringToFront(win), { passive: true });
+
+            header.addEventListener('dblclick', (e) => {
+                if (e.target.classList.contains('control-btn')) return;
+                toggleMaximize(win.id);
             });
+
+            header.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY, e.target));
+            header.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    startDrag(e.touches[0].clientX, e.touches[0].clientY, e.target);
+                }
+            }, { passive: true });
         }
 
-        /* Initialize Layout & Check Cookie Consent */
+        /* Initialize Layout & Show Cookie Banner on Every Visit */
         window.onload = () => {
-            checkCookieConsent();
+            showCookieBanner();
 
             document.querySelectorAll('.window').forEach((win) => {
                 initInteractivity(win);
-            });
-
-            window.addEventListener('resize', () => {
-                if (isMobile()) {
-                    document.querySelectorAll('.window').forEach(win => {
-                        win.style.borderRadius = '';
-                    });
-                }
             });
         };
     </script>
